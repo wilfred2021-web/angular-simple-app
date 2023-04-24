@@ -1,0 +1,69 @@
+---
+- name: Staging server Deployment
+  hosts: stageserver
+  become_user: root
+  become: true
+  vars:
+    repo_path: nrbaskar/angularcourse:{{DOCKER_TAG}}
+    dest_path: /home/ec2-user/{{DOCKER_TAG}}
+  tasks:
+    - name: Install python pip
+      yum:
+        name: python-pip
+        state: present
+    - name: Install docker
+      yum:
+        name: docker
+        state: present
+    - name: start docker
+      service:
+        name: docker
+        state: started
+        enabled: yes
+    - name: Install docker-py python module
+      pip:
+        name: docker-py
+        state: present
+    - name: Pull docker image
+      docker_image:
+        name: nrbaskar/angularcourse
+        tag: "{{DOCKER_TAG}}"
+        source: pull
+    - name: create directory
+      file:
+        state: directory
+        dest: "{{dest_path}}"
+    - name: copy website to the host
+      copy:
+        src: ./
+        dest: "{{dest_path}}"
+    # Install NodeJS library
+    # using multiple shell commands
+    - name: Install Nodejs & AngularJS
+      shell: 'curl --silent --location https://rpm.nodesource.com/setup_16.x | bash -'
+    # If other package are required mention the package name in "name"
+    # eg: ngix, curl, wget, apache2, nodejs
+    - name: Install required packages
+      yum:
+        name: nodejs
+        state: present
+    - name: Install required packages
+      command: sudo npm install -g @angular/cli
+    - name: Install npm installation
+      command: npm install
+    - name: Build an application and serve it locally
+      command: ng serve
+    - name: Install required packages
+      command: cd "{{ dest_path }}"
+    - name: Install PM2
+      npm: name=pm2 global=yes state=present
+    - name: Get Forever's list of running processes
+      command: pm2 status
+      register: pm2_status
+      changed_when: false
+    - name: Kill pm2 service
+      command: pm2 kill
+    - name: Start service
+      command: pm2 start -- start ./src/index.html --name "{{DOCKER_TAG}}-Service"
+      args:
+        chdir: "{{ dest_path }}"
