@@ -4,7 +4,7 @@
   become_user: root
   become: true
   vars:
-    repo_path: nrbaskar/angularcourse:{{DOCKER_TAG}}
+    repo_path: dockersify/angularcourse:{{DOCKER_TAG}}
     dest_path: /home/ec2-user/{{DOCKER_TAG}}
   tasks:
     - name: Install python pip
@@ -26,7 +26,7 @@
         state: present
     - name: Pull docker image
       docker_image:
-        name: nrbaskar/angularcourse
+        name: dockersify/angularcourse
         tag: "{{DOCKER_TAG}}"
         source: pull
     - name: create directory
