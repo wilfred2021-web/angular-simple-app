@@ -49,8 +49,8 @@
         state: present
     - name: Install required packages
       command: sudo npm install -g @angular/cli
-    - name: Install npm installation
-      command: npm install
+    #- name: Install npm installation
+    #  command: npm install
     - name: Install required packages
       command: cd "{{ dest_path }}"
     - name: Install PM2
